@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -22,6 +22,30 @@ async function run() {
     await client.connect();
     await client.db('admin').command({ ping: 1 });
     console.log('MongoDB connected successfully!');
+
+    const db = client.db('socialEventsDB');
+    const eventsCollection = db.collection('events');
+
+    // সব ইভেন্ট দেখা
+    app.get('/events', async (req, res) => {
+      const events = await eventsCollection.find().toArray();
+      res.send(events);
+    });
+
+    // একটা ইভেন্ট দেখা
+    app.get('/events/:id', async (req, res) => {
+      const event = await eventsCollection.findOne({
+        _id: new ObjectId(req.params.id),
+      });
+      res.send(event);
+    });
+
+    // নতুন ইভেন্ট যোগ করা
+    app.post('/events', async (req, res) => {
+      const newEvent = { ...req.body, createdAt: new Date() };
+      const result = await eventsCollection.insertOne(newEvent);
+      res.send(result);
+    });
   } catch (error) {
     console.error('MongoDB connection failed:', error.message);
   }
