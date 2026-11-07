@@ -7,7 +7,8 @@ const app = express();
 const port = process.env.PORT || 5000;
 const AUTH_URL = process.env.AUTH_URL || 'http://localhost:3000';
 
-app.use(cors());
+const allowedOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : true;
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 // Invalid ObjectId দিলে সার্ভার যেন ক্র্যাশ না করে
