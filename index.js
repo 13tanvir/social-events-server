@@ -10,6 +10,14 @@ const AUTH_URL = process.env.AUTH_URL || 'http://localhost:3000';
 app.use(cors());
 app.use(express.json());
 
+// Invalid ObjectId দিলে সার্ভার যেন ক্র্যাশ না করে
+app.param('id', (req, res, next, id) => {
+  if (!ObjectId.isValid(id)) {
+    return res.status(400).send({ message: 'Invalid event id' });
+  }
+  next();
+});
+
 const client = new MongoClient(process.env.MONGODB_URI, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -147,6 +155,9 @@ async function run() {
         return res.status(409).send({ message: 'You have already joined this event' });
       }
 
+      if (!ObjectId.isValid(eventId)) {
+        return res.status(400).send({ message: 'Invalid event id' });
+      }
       const event = await eventsCollection.findOne({ _id: new ObjectId(eventId) });
       if (!event) {
         return res.status(404).send({ message: 'Event not found' });
